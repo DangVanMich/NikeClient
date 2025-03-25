@@ -132,14 +132,18 @@
 
 .comments-section {
     margin-top: 40px;
-    padding-top: 40px;
-    border-top: 1px solid #eee;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .comments-section h2 {
-    font-size: 1.8rem;
+    font-size: 24px;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .comment-form {
@@ -147,33 +151,67 @@
     flex-direction: column;
     gap: 15px;
     margin-bottom: 30px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
-.comment-form input,
-.comment-form textarea {
-    padding: 10px;
+.comment-form:focus-within {
+    box-shadow: 0 0 0 2px #7fa9d6;
+    background: #fff;
+}
+
+.comment-form input {
+    padding: 12px 15px;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.comment-form input:focus {
+    outline: none;
+    border-color: #7fa9d6;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
 .comment-form textarea {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
     min-height: 100px;
     resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #7fa9d6;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
 .comment-form button {
-    padding: 10px 20px;
-    background: #007bff;
+    padding: 12px 25px;
+    background: #1e7bdf;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    align-self: flex-end;
 }
 
 .comment-form button:hover {
-    background: #0056b3;
+    background: #0c53a0;
+    transform: translateY(-2px);
+}
+
+.comment-form button:active {
+    transform: translateY(0);
 }
 
 .comments-list {
@@ -183,27 +221,90 @@
 }
 
 .comment {
-    background: #f8f9fa;
-    padding: 15px;
+    background: #fff;
+    padding: 20px;
     border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.comment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .comment-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
-    color: #666;
-    font-size: 0.9rem;
 }
 
 .comment-author {
-    font-weight: 500;
+    font-weight: 600;
     color: #333;
+    font-size: 16px;
+}
+
+.comment-date {
+    color: #666;
+    font-size: 14px;
 }
 
 .comment-content {
+    color: #444;
     line-height: 1.6;
-    color: #333;
+    font-size: 15px;
+}
+
+.no-comments {
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #ddd;
+}
+
+/* Animation for new comments */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comment {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Success message animation */
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.toast-success {
+    animation: fadeInOut 3s ease-in-out;
 }
 
 .loading {

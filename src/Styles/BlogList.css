@@ -176,8 +176,8 @@ select {
 
 .loading {
     text-align: center;
-    padding: 50px;
-    font-size: 1.5rem;
+    padding: 40px;
+    font-size: 16px;
     color: #666;
 }
 
@@ -186,4 +186,35 @@ select {
     padding: 50px;
     font-size: 1.5rem;
     color: #dc3545;
+}
+
+.error-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.error-message p {
+    color: #dc3545;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.error-message button {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.error-message button:hover {
+    background: #0056b3;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../Config/api';
 import { FaRegClock, FaRegUser, FaRegHeart, FaRegEye, FaRegComment } from 'react-icons/fa';
 import '../Styles/BlogDetail.css';
@@ -10,22 +10,24 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const BlogDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [comment, setComment] = useState('');
-    const [commentAuthor, setCommentAuthor] = useState('');
     const [isLiked, setIsLiked] = useState(false);
     const [lengthCart, setLengthCart] = useState(0);
     const [viewIncremented, setViewIncremented] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 await fetchBlog();
                 await fetchCartLength();
+                await checkAuth();
 
-                // Increment view count only once when component mounts
                 if (!viewIncremented) {
                     await axios.post(`/api/blogs/${id}/views`);
                     setViewIncremented(true);
@@ -37,6 +39,22 @@ const BlogDetail = () => {
 
         fetchData();
     }, [id, viewIncremented]);
+
+    const checkAuth = async () => {
+        try {
+            const response = await axios.get('/api/auth');
+            if (response.data) {
+                setIsAuthenticated(true);
+                setCurrentUser(response.data);
+            } else {
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+            }
+        } catch (error) {
+            setIsAuthenticated(false);
+            setCurrentUser(null);
+        }
+    };
 
     const fetchCartLength = async () => {
         try {
@@ -52,7 +70,6 @@ const BlogDetail = () => {
             setLoading(true);
             const response = await axios.get(`/api/blogs/${id}`);
             setBlog(response.data);
-            // Check if current user has liked this blog
             setIsLiked(response.data.likedBy?.includes(response.data.currentUserEmail));
             setError(null);
         } catch (err) {
@@ -84,22 +101,44 @@ const BlogDetail = () => {
 
     const handleComment = async (e) => {
         e.preventDefault();
+
+        if (!isAuthenticated) {
+            toast.error('Vui lòng đăng nhập để bình luận');
+            navigate('/login');
+            return;
+        }
+
+        if (!comment.trim()) {
+            toast.error('Vui lòng nhập nội dung bình luận');
+            return;
+        }
+
         try {
-            await axios.post(`/api/blogs/${id}/comments`, {
-                content: comment,
-                author: commentAuthor,
-            });
-            setComment('');
-            setCommentAuthor('');
-            fetchBlog(); // Refresh to get new comment
+            const response = await axios.post(
+                `/api/blogs/${id}/comments`,
+                {
+                    content: comment.trim(),
+                },
+                {
+                    withCredentials: true, // Thêm option này để gửi cookie
+                },
+            );
+
+            if (response.data) {
+                toast.success('Đã thêm bình luận thành công!');
+                setComment('');
+                await fetchBlog(); // Refresh để lấy comment mới
+            }
         } catch (err) {
-            console.error(err);
+            console.error('Error posting comment:', err);
+            if (err.response?.data?.message) {
+                toast.error(err.response.data.message);
+            } else {
+                toast.error('Có lỗi xảy ra khi đăng bình luận');
+            }
         }
     };
 
-    // if (loading) return <div className="loading">Loading...</div>;
-    // if (error) return <div className="error">{error}</div>;
-    // if (!blog) return <div className="error">Blog not found</div>;
     if (loading)
         return (
             <>
@@ -170,35 +209,40 @@ const BlogDetail = () => {
                     </button>
                 </div>
                 <div className="comments-section">
-                    <h2>Comments</h2>
-                    <form onSubmit={handleComment} className="comment-form">
-                        <input
-                            type="text"
-                            placeholder="Your name"
-                            value={commentAuthor}
-                            onChange={(e) => setCommentAuthor(e.target.value)}
-                            required
-                        />
-                        <textarea
-                            placeholder="Write a comment..."
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            required
-                        />
-                        <button type="submit">Post Comment</button>
-                    </form>
+                    <h2>Bình luận</h2>
+                    {isAuthenticated ? (
+                        <form onSubmit={handleComment} className="comment-form">
+                            <textarea
+                                placeholder="Viết bình luận của bạn..."
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                required
+                            />
+                            <button type="submit">Đăng bình luận</button>
+                        </form>
+                    ) : (
+                        <div className="login-prompt">
+                            <p>
+                                Vui lòng <button onClick={() => navigate('/login')}>đăng nhập</button> để bình luận
+                            </p>
+                        </div>
+                    )}
                     <div className="comments-list">
-                        {blog.comments.map((comment, index) => (
-                            <div key={index} className="comment">
-                                <div className="comment-header">
-                                    <span className="comment-author">{comment.author}</span>
-                                    <span className="comment-date">
-                                        {new Date(comment.createdAt).toLocaleDateString()}
-                                    </span>
+                        {blog.comments && blog.comments.length > 0 ? (
+                            blog.comments.map((comment, index) => (
+                                <div key={index} className="comment">
+                                    <div className="comment-header">
+                                        <span className="comment-author">{comment.author}</span>
+                                        <span className="comment-date">
+                                            {new Date(comment.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    <div className="comment-content">{comment.content}</div>
                                 </div>
-                                <div className="comment-content">{comment.content}</div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="no-comments">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                        )}
                     </div>
                 </div>
             </div>

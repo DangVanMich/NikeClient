@@ -36,9 +36,14 @@ const BlogList = () => {
     const fetchCartLength = async () => {
         try {
             const response = await axios.get('/api/cart');
-            setLengthCart(response.data.length);
+            if (Array.isArray(response.data)) {
+                setLengthCart(response.data.length);
+            } else {
+                setLengthCart(0);
+            }
         } catch (error) {
             console.error('Error fetching cart length:', error);
+            setLengthCart(0);
         }
     };
 
@@ -52,18 +57,21 @@ const BlogList = () => {
                     category,
                     search: debouncedSearch,
                 },
+                withCredentials: true,
             });
+
             if (response.data && response.data.blogs) {
                 setBlogs(response.data.blogs);
                 setTotalPages(response.data.totalPages);
                 setError(null);
             } else {
-                setError('Invalid response format from server');
+                setError('Không thể tải danh sách bài viết');
                 console.error('Invalid response format:', response.data);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to fetch blogs. Please try again later.');
             console.error('Error fetching blogs:', err);
+            setError('Không thể tải danh sách bài viết. Vui lòng thử lại sau.');
+            setBlogs([]);
         } finally {
             setLoading(false);
         }
@@ -79,8 +87,40 @@ const BlogList = () => {
         setPage(1);
     };
 
-    if (loading) return <div className="loading">Loading...</div>;
-    if (error) return <div className="error">{error}</div>;
+    if (loading) {
+        return (
+            <>
+                <Header lengthCart={lengthCart} setLengthCart={setLengthCart} />
+                <div className="blog-hero">
+                    <div className="blog-hero-content">
+                        <h1>Khám Phá Thế Giới Giày</h1>
+                        <p>Cập nhật xu hướng, kiến thức và cảm hứng về giày thể thao</p>
+                    </div>
+                </div>
+                <div className="loading">Đang tải...</div>
+                <Footer />
+            </>
+        );
+    }
+
+    if (error) {
+        return (
+            <>
+                <Header lengthCart={lengthCart} setLengthCart={setLengthCart} />
+                <div className="blog-hero">
+                    <div className="blog-hero-content">
+                        <h1>Khám Phá Thế Giới Giày</h1>
+                        <p>Cập nhật xu hướng, kiến thức và cảm hứng về giày thể thao</p>
+                    </div>
+                </div>
+                <div className="error-message">
+                    <p>{error}</p>
+                    <button onClick={() => window.location.reload()}>Thử lại</button>
+                </div>
+                <Footer />
+            </>
+        );
+    }
 
     return (
         <>

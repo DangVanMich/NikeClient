@@ -5,8 +5,8 @@ import Footer from '../Components/Footer';
 import request from '../Config/api';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock, faMoneyCheckDollar, faPhone } from '@fortawesome/free-solid-svg-icons';
-import { useEffect, useState } from 'react';
+import { faEnvelope, faLock, faMoneyCheckDollar, faPhone, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const cx = classNames.bind(styles);
@@ -14,6 +14,8 @@ const cx = classNames.bind(styles);
 function InfoUser() {
     const [dataUser, setDataUser] = useState({});
     const [dataPayments, setDataPayments] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef(null);
 
     const navigate = useNavigate();
     useEffect(() => {
@@ -39,6 +41,40 @@ function InfoUser() {
         }, 2000);
     };
 
+    const handleAvatarClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Upload image to a cloud storage service (e.g., Cloudinary)
+            const uploadResponse = await request.post('/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Update user avatar with the new image URL
+            const response = await request.post('/api/updateavatar', {
+                avatar: uploadResponse.data.url,
+            });
+
+            setDataUser(response.data);
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('Có lỗi xảy ra khi cập nhật avatar!');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <div className={cx('wrapper')}>
             <header>
@@ -49,10 +85,26 @@ function InfoUser() {
                 <div className={cx('info-user')}>
                     <div className={cx('inner')}>
                         <div className={cx('column-left')}>
-                            <img
-                                src="https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="
-                                alt=""
-                            />
+                            <div className={cx('avatar-container')}>
+                                <img
+                                    src={
+                                        dataUser?.avatar ||
+                                        'https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o='
+                                    }
+                                    alt=""
+                                    className={cx('avatar')}
+                                />
+                                <div className={cx('avatar-overlay')} onClick={handleAvatarClick}>
+                                    <FontAwesomeIcon icon={faCamera} />
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                />
+                            </div>
                             <div>
                                 <ul>
                                     <li id={cx('name')}>{dataUser?.fullname}</li>
